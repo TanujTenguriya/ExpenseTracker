@@ -41,5 +41,4 @@ venv/
 env/
 .venv
 
-# ml-service (removed)
-ml-service/
+

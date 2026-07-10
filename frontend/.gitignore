@@ -12,6 +12,24 @@ dist
 dist-ssr
 *.local
 
+# Environment
+.env
+.env.*
+
+# Vite cache
+.vite/
+
+# Lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Coverage
+coverage/
+
+# Testing
+.jest/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

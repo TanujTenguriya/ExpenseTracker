@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem,
   Button,
+  CircularProgress,
 } from "@mui/material";
 
 const COLORS = [
@@ -27,6 +28,7 @@ const COLORS = [
 export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
@@ -36,15 +38,34 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const fetchExpenses = async () => {
-    const res = await api.get("/expenses");
-    setExpenses(res.data);
+  const fetchExpenses = async (params = {}) => {
+    const res = await api.get("/expenses", { params });
+    setExpenses(
+      res.data.map((expense) => ({
+        ...expense,
+        _id: expense._id ?? expense.id,
+      }))
+    );
     setLoading(false);
   };
 
   useEffect(() => {
     fetchExpenses();
   }, []);
+
+  const handleSearch = async () => {
+    try {
+      setFetching(true);
+      await fetchExpenses({
+        q: search || undefined,
+        category: categoryFilter || undefined,
+        start: startDate || undefined,
+        end: endDate || undefined,
+      });
+    } finally {
+      setFetching(false);
+    }
+  };
   
   const handleEdit = (expense) => {
   setSelectedExpense(expense);
@@ -52,9 +73,14 @@ export default function Dashboard() {
 };
 
 const handleUpdated = (updatedExpense) => {
+  const normalized = {
+    ...updatedExpense,
+    _id: updatedExpense._id ?? updatedExpense.id,
+  };
+
   setExpenses((prev) =>
     prev.map((e) =>
-      e._id === updatedExpense._id ? updatedExpense : e
+      e._id === normalized._id ? normalized : e
     )
   );
 };
@@ -65,7 +91,8 @@ const handleUpdated = (updatedExpense) => {
   };
 
   const filteredExpenses = expenses.filter((exp) => {
-    const matchesSearch = exp.description
+    const desc = exp.description || "";
+    const matchesSearch = desc
       .toLowerCase()
       .includes(search.toLowerCase());
 
@@ -73,15 +100,20 @@ const handleUpdated = (updatedExpense) => {
       ? exp.category === categoryFilter
       : true;
 
-    const expDate = new Date(exp.date);
+    // Normalize expense date to YYYY-MM-DD for reliable comparisons
+    let expDateStr = "";
+    if (exp.date) {
+      if (typeof exp.date === "string") {
+        expDateStr = exp.date.includes("T")
+          ? exp.date.split("T")[0]
+          : exp.date.slice(0, 10);
+      } else {
+        expDateStr = new Date(exp.date).toISOString().slice(0, 10);
+      }
+    }
 
-    const matchesStart = startDate
-      ? expDate >= new Date(startDate)
-      : true;
-
-    const matchesEnd = endDate
-      ? expDate <= new Date(endDate)
-      : true;
+    const matchesStart = startDate ? expDateStr >= startDate : true;
+    const matchesEnd = endDate ? expDateStr <= endDate : true;
 
     return (
       matchesSearch &&
@@ -92,7 +124,7 @@ const handleUpdated = (updatedExpense) => {
   });
 
   const totalExpenses = filteredExpenses.reduce(
-    (sum, exp) => sum + exp.amount,
+    (sum, exp) => sum + Number(exp.amount || 0),
     0
   );
 
@@ -102,12 +134,17 @@ const handleUpdated = (updatedExpense) => {
       category: exp.category,
       value: 0,
     };
-    acc[exp.category].value += exp.amount;
+    acc[exp.category].value += Number(exp.amount || 0);
     return acc;
   }, {})
 );
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Box sx={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
 
   return (
     <Box>
@@ -213,8 +250,27 @@ const handleUpdated = (updatedExpense) => {
     item
     xs={12}
     md={1}
-    sx={{ display: "flex", justifyContent: "flex-end" }}
+    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
   >
+    <Button
+      variant="contained"
+      size="small"
+      onClick={handleSearch}
+      disabled={fetching}
+      sx={{
+        background: "linear-gradient(135deg, #10b981, #059669)",
+        color: "white",
+        fontWeight: 500,
+        px: 1,
+        mr: 1,
+        "&:hover": {
+          background: "linear-gradient(135deg, #059669, #047857)",
+        },
+      }}
+    >
+      {fetching ? <CircularProgress size={18} sx={{ color: "white" }} /> : "Search"}
+    </Button>
+
     <Button
       variant="contained"
       size="small"
@@ -223,7 +279,9 @@ const handleUpdated = (updatedExpense) => {
         setCategoryFilter("");
         setStartDate("");
         setEndDate("");
+        fetchExpenses();
       }}
+      disabled={fetching}
       sx={{
         background: "linear-gradient(135deg, #6366f1, #4f46e5)",
         color: "white",

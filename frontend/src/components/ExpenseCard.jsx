@@ -56,7 +56,7 @@ export default function ExpenseCard({ expense, onDelete, onEdit }) {
     <Button
       color="error"
       size="small"
-      onClick={() => onDelete(expense._id)}
+      onClick={() => onDelete(expense._id ?? expense.id)}
     >
       Delete
     </Button>

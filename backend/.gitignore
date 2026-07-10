@@ -29,3 +29,30 @@ Thumbs.db
 # Build
 dist/
 build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+.pytest_cache/
+.mypy_cache/
+pip-wheel-metadata/
+
+# ML artifacts
+ml-service/models/
+ml-service/*.pkl
+ml-service/*.h5
+
+# Lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Local env
+.env
+.env.*

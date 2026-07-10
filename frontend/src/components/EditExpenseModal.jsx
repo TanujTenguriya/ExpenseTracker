@@ -40,11 +40,30 @@ export default function EditExpenseModal({
 
   const handleUpdate = async () => {
     try {
-      const res = await api.put(`/expenses/${expense._id}`, form);
+      const expenseId = expense._id ?? expense.id;
+      if (!expenseId) {
+        throw new Error("Missing expense ID");
+      }
+
+      const payload = {
+        ...form,
+        amount: Number(form.amount),
+      };
+
+      if (Number.isNaN(payload.amount) || payload.amount <= 0) {
+        throw new Error("Amount must be a positive number");
+      }
+
+      const res = await api.put(`/expenses/${expenseId}`, payload);
       onUpdated(res.data);
       onClose();
     } catch (err) {
-      alert("Failed to update");
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update";
+      alert(message);
     }
   };
 

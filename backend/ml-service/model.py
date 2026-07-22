@@ -11,8 +11,7 @@ MODEL_DIR = "models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # Categories are matched case-insensitively. Anything not listed here is
-# "neutral" instead of being silently dropped from the necessary/discretionary
-# split (the original code ignored any category outside its two hardcoded lists).
+# "neutral" instead of being silently dropped from the necessary/discretionary split 
 NECESSARY_CATEGORIES = {
     "groceries", "utilities", "health", "rent", "insurance",
     "education", "transport", "medical", "bills",
@@ -61,8 +60,7 @@ def _monthly_series(df):
 
 def _fingerprint(df_monthly):
     """Cheap signature of the training data so Prophet is only refit when the
-    monthly series has actually changed, instead of on every single request
-    (the original code called model.fit() on every /analyze call)."""
+    monthly series has actually changed, instead of on every single request"""
     payload = f"{len(df_monthly)}|{df_monthly['y'].sum():.2f}|{df_monthly['ds'].max()}"
     return hashlib.md5(payload.encode()).hexdigest()
 
@@ -209,9 +207,7 @@ def forecast_with_model(df, user_id):
 def _detect_anomalies(df):
     """Flag transactions that are unusual *for their category*, using
     IsolationForest over amount + category-relative z-score + calendar
-    features, rather than raw amount alone. A ₹5,000 grocery run and a
-    ₹5,000 entertainment charge are not equally unusual, but the original
-    code fed IsolationForest only the raw 'amount' column, ignoring category."""
+    features, rather than raw amount alone."""
     if len(df) < MIN_ROWS_FOR_ANOMALY:
         return []
 
@@ -252,9 +248,7 @@ def _detect_anomalies(df):
 
 def _category_month_over_month(df):
     """Compare each category's most recent calendar month to its own trailing
-    history. The original code compared a *summed* recent slice of rows
-    against a *per-transaction* mean+std threshold, mixing scales in a way
-    that made the "unusual increase" alert fire close to arbitrarily."""
+    history."""
     work = df.copy()
     work["month"] = pd.to_datetime(work["date"]).dt.to_period("M")
     pivot = work.groupby(["month", "category"])["amount"].sum().unstack(fill_value=0)

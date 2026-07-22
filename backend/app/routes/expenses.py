@@ -102,8 +102,6 @@ def get_expenses(
     end: str | None = None,
 ) -> list[ExpenseOut]:
 
-    # Build date range: prefer explicit start/end if provided, otherwise
-    # default to current month range (server-side behavior preserved).
     date_filter: dict[str, Any] = {}
 
     if start or end:

@@ -1,6 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-
-// Pages (we will create these next)
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -8,7 +6,6 @@ import AddExpense from "./pages/AddExpense";
 import Reports from "./pages/Reports";
 import { useAuth } from "./context/AuthContext";
 import Insights from "./pages/Insights";
-// Temporary auth check (we'll improve later)
 
 
 function App() {
